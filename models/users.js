@@ -1,11 +1,36 @@
 const { Sequelize, DataTypes } = require("sequelize");
-const { sequelize } = require("../config/db");
+const sequelize = require("../config/db");
 
-const User = sequelize.define("User", {
-  id: { type: DataTypes.UUID, defaultValue: Sequelize.UUIDV4, primaryKey: true },
-  username: { type: DataTypes.STRING, unique: true, allowNull: false },
-  password: { type: DataTypes.STRING, allowNull: false }
+const User = sequelize.define("User", {  
+  id: { 
+    type: DataTypes.INTEGER, 
+    primaryKey: true,
+    autoIncrement: true 
+  },
+  fullname: { 
+    type: DataTypes.STRING(100), 
+    allowNull: false 
+  },
+  email: { 
+    type: DataTypes.STRING(100), 
+    allowNull: false, 
+    unique: true 
+  },
+  pnumber: { 
+    type: DataTypes.STRING(15),   // Phone number is optional
+    allowNull: true 
+  },
+  password: { 
+    type: DataTypes.TEXT, 
+    allowNull: false 
+  },
+  role: { 
+    type: DataTypes.STRING(10), 
+    defaultValue: 'user' 
+  }
+}, {
+  tableName: 'users',  
+  timestamps: false    
 });
 
-sequelize.sync(); // Create table if not exists
 module.exports = User;

@@ -1,19 +1,26 @@
+require('dotenv').config();  // Load environment variables
+
 const { Sequelize } = require("sequelize");
 
-const sequelize = new Sequelize("your_database_name", "your_pgadmin_username", "your_pgadmin_password", {
-  host: "localhost",
-  dialect: "postgres",
-  logging: false,
-});
+const sequelize = new Sequelize(
+  process.env.DB_NAME,
+  process.env.DB_USER,
+  process.env.DB_PASS,
+  {
+    host: process.env.DB_HOST,
+    dialect: "postgres",
+    logging: false,
+  }
+);
 
-const connectDB = async () => {
+// Testing the connection
+(async () => {
   try {
     await sequelize.authenticate();
-    console.log("PostgreSQL Connected Successfully!");
+    console.log('Connection to the database has been established successfully.');
   } catch (error) {
-    console.error("PostgreSQL Connection Error:", error);
-    process.exit(1);
+    console.error('Unable to connect to the database:', error);
   }
-};
+})();
 
-module.exports = { sequelize, connectDB };
+module.exports = sequelize;  // Export sequelize directly
