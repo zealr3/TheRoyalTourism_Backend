@@ -17,6 +17,51 @@ sequelize.sync().then(() => {
     console.log("Database connected successfully.");
 });
 
+// Middleware for verifying admin role
+const requireAdmin = async (req, res, next) => {
+    const { userId } = req.body;  // Send userId from frontend or session (if using JWT, use `req.user.id` after verifying token)
+
+    try {
+        const user = await User.findByPk(userId);
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found.' });
+        }
+
+        if (user.role !== 'admin') {
+            return res.status(403).json({ error: 'Unauthorized. Admins only.' });
+        }
+
+        next();
+    } catch (error) {
+        console.error("Authorization error:", error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
+
+// Promote User to Admin (Admin only route)
+app.put('/api/users/promote', requireAdmin, async (req, res) => {
+    const { userId, targetUserId } = req.body; // `userId` is the admin's ID, `targetUserId` is the user to be promoted
+
+    try {
+        const user = await User.findByPk(targetUserId);
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found.' });
+        }
+
+        user.role = 'admin';
+        await user.save();
+
+        res.status(200).json({ message: 'User promoted to admin successfully.' });
+
+    } catch (error) {
+        console.error("Promote user error:", error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+
 // --------------------- User Routes ---------------------
 
 // Get all users (Admin Purpose)
@@ -41,9 +86,10 @@ app.get('/api/users/count', async (req, res) => {
     }
 });
 
-// User Signup
+// User Signup (Modify this route)
 app.post('/api/signup', async (req, res) => {
-    const { fullname, email, password, role = 'user' } = req.body;
+    const { fullname, email, password } = req.body; // Remove role from request
+    const role = 'user';  // Forcefully set the role as 'user'
 
     try {
         const existingUser = await User.findOne({ where: { email } });
