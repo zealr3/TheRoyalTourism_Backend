@@ -11,7 +11,7 @@ const Destination = sequelize.define('Destination', {
         type: DataTypes.STRING,
         allowNull: false
     },
-    image: {
+    image: {    
         type: DataTypes.TEXT,
         allowNull: false
     },
