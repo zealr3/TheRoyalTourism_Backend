@@ -1,6 +1,5 @@
 const express = require("express");
-const Package = require("../models/package");
-const Destination = require("../models/destination");
+const models = require("../models");
 const requireAuth = require("../middleware/requireauth");
 const requireAdmin = require("../middleware/requireadmin");
 
@@ -16,46 +15,58 @@ router.post("/", [requireAuth, requireAdmin], async (req, res) => {
   }
 
   try {
-    const destination = await Destination.findByPk(destinationId);
+    console.log('Package model for create:', typeof models.Package.create);
+    const destination = await models.Destination.findByPk(destinationId);
     if (!destination) {
       return res.status(400).json({ error: "Invalid destinationId: Destination not found" });
     }
 
-    const newPackage = await Package.create({
+    const newPackage = await models.Package.create({
       name,
       price,
       description,
       image,
       destinationId,
     });
+    console.log('Created package:', newPackage.toJSON());
     res.status(201).json({ message: "Package added successfully", package: newPackage });
   } catch (error) {
-    console.error("Add package error:", error);
+    console.error("Add package error:", error.message, error.stack);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-// Add this below the other routes
-router.get("/by-destination/:destinationId", async (req, res) => {
-  try {
-    const { destinationId } = req.params;
-    const packages = await Package.findAll({
-      where: { destinationId },
-    });
 
+// Get packages by destination
+router.get('/by-destination/:destinationId', async (req, res) => {
+  try {
+    console.log('Package model:', models.Package, typeof models.Package.findAll);
+    if (typeof models.Package.findAll !== 'function') {
+      throw new Error('Package.findAll is not a function');
+    }
+    const { destinationId } = req.params;
+    console.log(`Fetching packages for destinationId: ${destinationId}`);
+    const packages = await models.Package.findAll({
+      where: { destinationId: parseInt(destinationId) },
+    });
+    console.log('Fetched packages:', packages.map(p => p.toJSON()));
     res.status(200).json(packages);
   } catch (error) {
-    console.error("Error fetching packages by destination:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    console.error('Error fetching packages:', error.message, error.stack);
+    res.status(500).json({ error: 'Failed to fetch packages', details: error.message });
   }
 });
 
 // Get all packages
 router.get("/", async (req, res) => {
   try {
-    const packages = await Package.findAll({ include: [{ model: Destination, as: "destination" }] });
+    console.log('Package model for findAll:', typeof models.Package.findAll);
+    const packages = await models.Package.findAll({ 
+      include: [{ model: models.Destination, as: "destination" }] 
+    });
+    console.log('Fetched all packages:', packages.map(p => p.toJSON()));
     res.status(200).json(packages);
   } catch (error) {
-    console.error("Fetch packages error:", error);
+    console.error("Fetch packages error:", error.message, error.stack);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
@@ -63,13 +74,15 @@ router.get("/", async (req, res) => {
 // Get package by ID
 router.get("/:id", async (req, res) => {
   try {
-    const package = await Package.findByPk(req.params.id, {
-      include: [{ model: Destination, as: "destination" }],
+    console.log('Package model for findByPk:', typeof models.Package.findByPk);
+    const pkg = await models.Package.findByPk(req.params.id, {
+      include: [{ model: models.Destination, as: "destination" }],
     });
-    if (!package) return res.status(404).json({ error: "Package not found" });
-    res.status(200).json(package);
+    if (!pkg) return res.status(404).json({ error: "Package not found" });
+    console.log('Fetched package:', pkg.toJSON());
+    res.status(200).json(pkg);
   } catch (error) {
-    console.error("Fetch package error:", error.message);
+    console.error("Fetch package error:", error.message, error.stack);
     res.status(500).json({ error: error.message });
   }
 });
@@ -80,33 +93,37 @@ router.put("/:id", [requireAuth, requireAdmin], async (req, res) => {
   const { name, price, description, image, destinationId } = req.body;
 
   try {
-    const pkg = await Package.findByPk(id);
+    console.log('Package model for findByPk:', typeof models.Package.findByPk);
+    const pkg = await models.Package.findByPk(id);
     if (!pkg) return res.status(404).json({ error: "Package not found" });
 
     await pkg.update({ name, price, description, image, destinationId });
-
+    console.log('Updated package:', pkg.toJSON());
     res.status(200).json({ message: "Package updated successfully", package: pkg });
   } catch (error) {
-    console.error("Update package error:", error.message);
+    console.error("Update package error:", error.message, error.stack);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-  
+
+// Delete package by ID
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
   console.log(`Delete request received for package ID: ${id}`);
   
   try {
-    const pkg = await Package.findByPk(id);
+    console.log('Package model for findByPk:', typeof models.Package.findByPk);
+    const pkg = await models.Package.findByPk(id);
     if (!pkg) {
       return res.status(404).json({ error: "Package not found" });
     }
     
     await pkg.destroy();
+    console.log('Deleted package ID:', id);
     return res.status(200).json({ message: "Package deleted successfully" });
-  } catch (err) {
-    console.error("Backend delete error:", err);
-    return res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error("Backend delete error:", error.message, error.stack);
+    return res.status(500).json({ error: error.message });
   }
 });
 

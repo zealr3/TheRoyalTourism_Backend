@@ -6,7 +6,7 @@ module.exports = (sequelize, DataTypes) => {
       autoIncrement: true,
     },
     fdetail: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: false,
     },
     fimg: {
@@ -22,5 +22,14 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: false,
   });
 
+  Food.associate = (models) => {
+    console.log('Associating Food with Destination:', !!models.Destination, typeof models.Destination.findAll);
+    Food.belongsTo(models.Destination, {
+      foreignKey: 'did',
+      as: 'destination',
+    });
+  };
+
+  console.log('Food model defined:', Food !== undefined, typeof Food.findAll);
   return Food;
 };

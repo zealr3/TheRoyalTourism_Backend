@@ -21,8 +21,8 @@ app.use('/api/packages', packageRoutes);
 const foodRoutes = require('./routes/foodroute');
 app.use('/api/foods', foodRoutes);
 
-const activityRoutes = require('./routes/activityRoutes');
-const placeRoutes = require('./routes/placeRoutes');
+const activityRoutes = require('./routes/activityRoute');
+const placeRoutes = require('./routes/placesRoute');
 
 app.use('/api/activities', activityRoutes);
 app.use('/api/places', placeRoutes);
