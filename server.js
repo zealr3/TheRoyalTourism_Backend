@@ -27,6 +27,10 @@ const placeRoutes = require('./routes/placesRoute');
 app.use('/api/activities', activityRoutes);
 app.use('/api/places', placeRoutes);
 
+const tourRoutes = require('./routes/tourRoutes');
+app.use('/api/tours', tourRoutes);
+
+
 sequelize.sync({ force: false }).then(() => {
   console.log('Database connected successfully.');
 }).catch((err) => {

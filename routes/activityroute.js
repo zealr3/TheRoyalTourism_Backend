@@ -80,4 +80,34 @@ router.get('/list', async (req, res) => {
   }
 });
 
+router.delete('/:aid', async (req, res) => {
+  const { aid } = req.params;
+  console.log(`Delete request received for activity ID: ${aid}`);
+
+  try {
+    if (!Activity) {
+      console.error('Activity model is undefined');
+      return res.status(500).json({ error: 'Activity model is undefined' });
+    }
+
+    const activity = await Activity.findByPk(aid);
+    if (!activity) {
+      console.error(`Activity not found for ID: ${aid}`);
+      return res.status(404).json({ error: `Activity not found for ID: ${aid}` });
+    }
+
+    await activity.destroy();
+    console.log('Deleted activity ID:', aid);
+    return res.status(200).json({ message: 'Activity deleted successfully' });
+  } catch (error) {
+    console.error('Backend delete error:', {
+      message: error.message,
+      stack: error.stack,
+      aid,
+      user: req.user ? { id: req.user.id, isAdmin: req.user.isAdmin } : 'No user',
+    });
+    return res.status(500).json({ error: error.message || 'Failed to delete activity' });
+  }
+});
+
 module.exports = router;

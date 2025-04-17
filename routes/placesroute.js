@@ -100,5 +100,38 @@ router.get('/list', async (req, res) => {
     res.status(500).json({ error: error.message || 'Internal Server Error' });
   }
 });
+router.delete('/:pl_id', async (req, res) => {
+  const { pl_id } = req.params;
+  console.log(`Delete request received for place ID: ${pl_id}`);
+
+  try {
+    if (!models.Place) {
+      console.error('Place model is undefined');
+      return res.status(500).json({ error: 'Place model is undefined' });
+    }
+    if (!models.Place.findByPk) {
+      console.error('Place.findByPk is undefined');
+      return res.status(500).json({ error: 'Place.findByPk is undefined' });
+    }
+
+    const place = await models.Place.findByPk(pl_id);
+    if (!place) {
+      console.error(`Place not found for ID: ${pl_id}`);
+      return res.status(404).json({ error: `Place not found for ID: ${pl_id}` });
+    }
+
+    await place.destroy();
+    console.log('Deleted place ID:', pl_id);
+    return res.status(200).json({ message: 'Place deleted successfully' });
+  } catch (error) {
+    console.error('Backend delete error:', {
+      message: error.message,
+      stack: error.stack,
+      pl_id,
+      user: req.user ? { id: req.user.id, isAdmin: req.user.isAdmin } : 'No user',
+    });
+    return res.status(500).json({ error: error.message || 'Failed to delete place' });
+  }
+});
 
 module.exports = router;
